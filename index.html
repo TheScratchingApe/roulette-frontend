@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Roulette dApp</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <div class =Welcome ><h1>Welcome to Roulette dApp</h1></div>
+    <h3 id="timer">Time left: 45.00s</h3>
+
+    <div class="balance-section">
+      <h3>Your Balance: <span id="player-balance">100</span> Tokens</h3>
+    </div>
+
+    <h2>Place your bet:</h2>
+    <div class="token-section">
+      <button class="token" data-value="1">1</button>
+      <button class="token" data-value="5">5</button>
+      <button class="token" data-value="10">10</button>
+      <button class="token" data-value="20">20</button>
+      <button class="token" data-value="50">50</button>
+  </div>
+  
+    <button id="cancel-bet-btn">Cancel Bet</button>
+
+    <div class="roulette-table">
+      <!-- Zero -->
+      <div class="cell green zero" onclick="placeBet('number', 0)">0</div>
+
+      <!-- Numbers Section -->
+      <div class="numbers-section">
+        <!-- First Row -->
+        <div class="row">
+          <div class="cell red" onclick="placeBet('number', 3)">3</div>
+          <div class="cell chevalH" onclick="placeBet('split', [3,6])"></div>
+          <div class="cell black" onclick="placeBet('number', 6)">6</div>
+          <div class="cell chevalH" onclick="placeBet('split', [6,9])"></div>
+          <div class="cell red" onclick="placeBet('number', 9)">9</div>
+          <div class="cell chevalH" onclick="placeBet('split', [9,12])"></div>
+          <div class="cell red" onclick="placeBet('number', 12)">12</div>
+          <div class="cell chevalH" onclick="placeBet('split', [12,15])"></div>
+          <div class="cell black" onclick="placeBet('number', 15)">15</div>
+          <div class="cell chevalH" onclick="placeBet('split', [15,18])"></div>
+          <div class="cell red" onclick="placeBet('number', 18)">18</div>
+          <div class="cell chevalH" onclick="placeBet('split', [18,21])"></div>
+          <div class="cell red" onclick="placeBet('number', 21)">21</div>
+          <div class="cell chevalH" onclick="placeBet('split', [21,24])"></div>
+          <div class="cell black" onclick="placeBet('number', 24)">24</div>
+          <div class="cell chevalH" onclick="placeBet('split', [24,27])"></div>
+          <div class="cell red" onclick="placeBet('number', 27)">27</div>
+          <div class="cell chevalH" onclick="placeBet('split', [27,30])"></div>
+          <div class="cell red" onclick="placeBet('number', 30)">30</div>
+          <div class="cell chevalH" onclick="placeBet('split', [30,33])"></div>
+          <div class="cell black" onclick="placeBet('number', 33)">33</div>
+          <div class="cell chevalH" onclick="placeBet('split', [33,36])"></div>
+          <div class="cell red" onclick="placeBet('number', 36)">36</div>
+        </div>
+        
+        <!-- Lignes pour les mises à cheval-->
+        <div class="row">
+          <div class="cell chevalV" onclick="placeBet('split', [2,3])"></div>
+          <div class="cell carre" onclick="placeBet('split', [2,3,5,6])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [5,6])"></div>
+          <div class="cell carre" onclick="placeBet('split', [5,6,8,9])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [8,9])"></div>
+          <div class="cell carre" onclick="placeBet('split', [8,9,11,12])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [11,12])"></div>
+          <div class="cell carre" onclick="placeBet('split', [11,12,14,15])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [14,15])"></div>
+          <div class="cell carre" onclick="placeBet('split', [14,15,17,18])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [17,18])"></div>
+          <div class="cell carre" onclick="placeBet('split', [17,18,20,21])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [20,21])"></div>
+          <div class="cell carre" onclick="placeBet('split', [20,21,23,24])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [23,24])"></div>
+          <div class="cell carre" onclick="placeBet('split', [23,24,26,27])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [26,27])"></div>
+          <div class="cell carre" onclick="placeBet('split', [26,27,29,30])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [29,30])"></div>
+          <div class="cell carre" onclick="placeBet('split', [29,30,32,33])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [32,33])"></div>
+          <div class="cell carre" onclick="placeBet('split', [32,33,35,36])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [35,36])"></div>
+        </div>
+
+        <!-- Second Row -->
+        <div class="row">
+          <div class="cell black" onclick="placeBet('number', 2)">2</div>
+          <div class="cell chevalH" onclick="placeBet('split', [2,5])"></div>
+          <div class="cell red" onclick="placeBet('number', 5)">5</div>
+          <div class="cell chevalH" onclick="placeBet('split', [5,8])"></div>
+          <div class="cell black" onclick="placeBet('number', 8)">8</div>
+          <div class="cell chevalH" onclick="placeBet('split', [8,11])"></div>
+          <div class="cell black" onclick="placeBet('number', 11)">11</div>
+          <div class="cell chevalH" onclick="placeBet('split', [11,14])"></div>
+          <div class="cell red" onclick="placeBet('number', 14)">14</div>
+          <div class="cell chevalH" onclick="placeBet('split', [14,17])"></div>
+          <div class="cell black" onclick="placeBet('number', 17)">17</div>
+          <div class="cell chevalH" onclick="placeBet('split', [17,20])"></div>
+          <div class="cell black" onclick="placeBet('number', 20)">20</div>
+          <div class="cell chevalH" onclick="placeBet('split', [20,23])"></div>
+          <div class="cell red" onclick="placeBet('number', 23)">23</div>
+          <div class="cell chevalH" onclick="placeBet('split', [23,26])"></div>
+          <div class="cell black" onclick="placeBet('number', 26)">26</div>
+          <div class="cell chevalH" onclick="placeBet('split', [26,29])"></div>
+          <div class="cell black" onclick="placeBet('number', 29)">29</div>
+          <div class="cell chevalH" onclick="placeBet('split', [29,32])"></div>
+          <div class="cell red" onclick="placeBet('number', 32)">32</div>
+          <div class="cell chevalH" onclick="placeBet('split', [32,35])"></div>
+          <div class="cell black" onclick="placeBet('number', 35)">35</div>
+        </div>
+
+                <!-- Lignes pour les mises à cheval-->
+        <div class="row">
+          <div class="cell chevalV" onclick="placeBet('split', [2,1])"></div>
+          <div class="cell carre" onclick="placeBet('split', [2,1,5,4])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [5,4])"></div>
+          <div class="cell carre" onclick="placeBet('split', [4,5,7,8])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [8,7])"></div>
+          <div class="cell carre" onclick="placeBet('split', [7,8,10,11])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [11,10])"></div>
+          <div class="cell carre" onclick="placeBet('split', [10,11,13,14])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [14,13])"></div>
+          <div class="cell carre" onclick="placeBet('split', [13,14,16,17])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [17,16])"></div>
+          <div class="cell carre" onclick="placeBet('split', [16,17,19,20])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [20,19])"></div>
+          <div class="cell carre" onclick="placeBet('split', [19,20,22,23])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [23,22])"></div>
+          <div class="cell carre" onclick="placeBet('split', [22,23,25,26])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [26,25])"></div>
+          <div class="cell carre" onclick="placeBet('split', [26,25,29,28])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [29,28])"></div>
+          <div class="cell carre" onclick="placeBet('split', [29,28,31,32])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [32,31])"></div>
+          <div class="cell carre" onclick="placeBet('split', [32,31,35,33])"></div>
+          <div class="cell chevalV" onclick="placeBet('split', [35,33])"></div>
+        </div>
+
+        <!-- Third Row -->
+        <div class="row">
+          <div class="cell red" onclick="placeBet('number', 1)">1</div>
+          <div class="cell chevalH" onclick="placeBet('split', [1,4])"></div>
+          <div class="cell black" onclick="placeBet('number', 4)">4</div>
+          <div class="cell chevalH" onclick="placeBet('split', [4,7])"></div>
+          <div class="cell red" onclick="placeBet('number', 7)">7</div>
+          <div class="cell chevalH" onclick="placeBet('split', [7,10])"></div>
+          <div class="cell black" onclick="placeBet('number', 10)">10</div>
+          <div class="cell chevalH" onclick="placeBet('split', [10,13])"></div>
+          <div class="cell black" onclick="placeBet('number', 13)">13</div>
+          <div class="cell chevalH" onclick="placeBet('split', [13,16])"></div>
+          <div class="cell red" onclick="placeBet('number', 16)">16</div>
+          <div class="cell chevalH" onclick="placeBet('split', [16,19])"></div>
+          <div class="cell red" onclick="placeBet('number', 19)">19</div>
+          <div class="cell chevalH" onclick="placeBet('split', [19,22])"></div>
+          <div class="cell black" onclick="placeBet('number', 22)">22</div>
+          <div class="cell chevalH" onclick="placeBet('split', [22,25])"></div>
+          <div class="cell red" onclick="placeBet('number', 25)">25</div>
+          <div class="cell chevalH" onclick="placeBet('split', [25,28])"></div>
+          <div class="cell black" onclick="placeBet('number', 28)">28</div>
+          <div class="cell chevalH" onclick="placeBet('split', [28,31])"></div>
+          <div class="cell black" onclick="placeBet('number', 31)">31</div>
+          <div class="cell chevalH" onclick="placeBet('split', [31,34])"></div>
+          <div class="cell red" onclick="placeBet('number', 34)">34</div>
+        </div>
+      <!-- Lignes pour les mises colonnes+sixains-->
+      <div class="row">
+        <div class="cell colonne" onclick="placeBet('split', [1,2,3])"></div>
+        <div class="cell sixains" onclick="placeBet('split', [1,2,3,4,5,6])"></div>
+        <div class="cell colonne" onclick="placeBet('split', [4,5,6])"></div>
+        <div class="cell sixains" onclick="placeBet('split', [4,5,6,7,8,9])"></div>
+        <div class="cell colonne" onclick="placeBet('split', [7,8,9])"></div>
+        <div class="cell sixains" onclick="placeBet('split', [7,8,9,10,11,12])"></div>
+        <div class="cell colonne" onclick="placeBet('split', [10,11,12])"></div>
+        <div class="cell sixains" onclick="placeBet('split', [10,11,12,13,14,15])"></div>
+        <div class="cell colonne" onclick="placeBet('split', [13,14,15])"></div>
+        <div class="cell sixains" onclick="placeBet('split', [13,14,15,16,17,18])"></div>
+        <div class="cell colonne" onclick="placeBet('split', [16,17,18])"></div>
+        <div class="cell sixains" onclick="placeBet('split', [16,17,18,19,20,21])"></div>
+        <div class="cell colonne" onclick="placeBet('split', [19,20,21])"></div>
+        <div class="cell sixains" onclick="placeBet('split', [19,20,21,22,23,24])"></div>
+        <div class="cell colonne" onclick="placeBet('split', [22,23,24])"></div>
+        <div class="cell sixains" onclick="placeBet('split', [22,23,24,25,26,27])"></div>
+        <div class="cell colonne" onclick="placeBet('split', [25,26,27])"></div>
+        <div class="cell sixains" onclick="placeBet('split', [25,26,27,28,29,30])"></div>
+        <div class="cell colonne" onclick="placeBet('split', [28,29,30])"></div>
+        <div class="cell sixains" onclick="placeBet('split', [28,29,30,31,32,33])"></div>
+        <div class="cell colonne" onclick="placeBet('split', [31,32,33])"></div>
+        <div class="cell sixains" onclick="placeBet('split', [31,32,33,34,35,36])"></div>
+        <div class="cell colonne" onclick="placeBet('split', [34,35,36])"></div>
+      </div>
+    </div>
+
+      <!-- Row bets -->
+      <div class="row-bets-section">
+        <div class="row-bet" onclick="placeBet('row', 'third')">2 to 1</div>
+        <div class="row-bet" onclick="placeBet('row', 'second')">2 to 1</div>
+        <div class="row-bet" onclick="placeBet('row', 'first')">2 to 1</div>
+      </div>
+    </div>
+
+    <!-- Column bets section -->
+    <div class="column-bets-section">
+      <div class="column-bet" onclick="placeBet('column', 'first')">1st dozen</div>
+      <div class="column-bet" onclick="placeBet('column', 'second')">2nd dozen</div>
+      <div class="column-bet" onclick="placeBet('column', 'third')">3rd dozen</div>
+    </div>
+    <!-- Bottom bets section -->
+    <div class="bottom-bets-section">
+      <div class="bottom-bet" onclick="placeBet('half', 'low')">1-18</div>
+      <div class="bottom-bet" onclick="placeBet('parity', 'even')">Even</div>
+      <div class="bottom-bet" onclick="placeBet('color', 'red')">Red</div>
+      <div class="bottom-bet" onclick="placeBet('color', 'black')">Black</div>
+      <div class="bottom-bet" onclick="placeBet('parity', 'odd')">Odd</div>
+      <div class="bottom-bet" onclick="placeBet('half', 'high')">19-36</div>
+    </div>
+
+    <span id="last-drawn-number"></span>
+    <h3>Last Drawn Numbers:</h3>
+    <ul id="last-drawn-numbers-list">
+      <!-- Les numéros seront ajoutés ici via JavaScript -->
+    </ul>
+
+    <h3 id="bet-result"></h3>
+
+    <script src="script.js"></script>
+    <div class="roulette-container">
+      <img src="RouletteFixed.png" alt="Roulette Fixed Part" class="roulette-fixed" width="500" height="500" />
+      <img src="RouletteRotating.png" alt="Roulette Rotating Part" class="roulette-wheel" width="500" height="500" />
+      <div class="ball-container">
+          <div class="ball"></div>
+      </div>
+    </div>
+  
+    </div>
+  </body>
+</html>
