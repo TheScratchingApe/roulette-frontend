@@ -13,6 +13,20 @@ let resetBallTimeout;
 let lastClickTime = 0;
 let currentBetValue = 1; 
 
+
+let telegramUserId = null;
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    telegramUserId = window.Telegram.WebApp.initDataUnsafe.user ? window.Telegram.WebApp.initDataUnsafe.user.id : null;
+
+    if (!telegramUserId) {
+        console.error("Failed to retrieve Telegram user ID.");
+    } else {
+        console.log("Telegram User ID:", telegramUserId);
+    }
+});
+
+
 document.getElementById('cancel-bet-btn').addEventListener('click', function() {
     const currentTime = Date.now();
     if (currentTime - lastClickTime < 300) { // Double click within 300ms
@@ -180,6 +194,11 @@ function placeBet(betType, betValue) {
         return;
     }
 
+    if (!telegramUserId) {
+        alert("Unable to place bet. User ID is missing.");
+        return;
+    }
+
     const betAmount = currentBetValue;
 
     if (userBalance < betAmount) {
@@ -191,18 +210,16 @@ function placeBet(betType, betValue) {
         betValue = parseInt(betValue, 10);
     }
 
-
-
     userBalance -= betAmount;
     balanceDisplay.textContent = userBalance;
-    if (betType==='split') {
-        for (i in betValue) {
+
+    if (betType === 'split') {
+        for (let i in betValue) {
             bets.push({
                 type: 'number',
-                value: parseInt(betValue[i],10),
-                amount: betAmount/betValue.length
-            })
-        console.log(bets);
+                value: parseInt(betValue[i], 10),
+                amount: betAmount / betValue.length
+            });
         }
     } else {
         bets.push({
@@ -211,58 +228,40 @@ function placeBet(betType, betValue) {
             amount: betAmount
         });
     }
+
     console.log("Bet placed:", betType, betValue, betAmount);
 
-    // Trouvez le bouton sur lequel l'utilisateur a cliqué
-    let betElement;
-    switch(betType) {
-        case 'number':
-            betElement = document.querySelector(`.cell[onclick="placeBet('number', ${betValue})"]`);
-            break;
-        case 'color':
-            betElement = document.querySelector(`.bottom-bet[onclick="placeBet('color', '${betValue}')"]`);
-            break;
-        case 'parity':
-            betElement = document.querySelector(`.bottom-bet[onclick="placeBet('parity', '${betValue}')"]`);
-            break;
-        case 'half':
-            betElement = document.querySelector(`.bottom-bet[onclick="placeBet('half', '${betValue}')"]`);
-            break;
-        case 'column':
-            betElement = document.querySelector(`.column-bet[onclick="placeBet('column', '${betValue}')"]`);
-            break;
-        case 'row':
-            betElement = document.querySelector(`.row-bet[onclick="placeBet('row', '${betValue}')"]`);
-            break;
-        case 'split':
-            if (Array.isArray(betValue) && betValue.length >= 2 && betValue.length <= 6) {
-                const betString = betValue.join(',');
-                betElement = document.querySelector(`.cell[onclick="placeBet('split', [${betString}])"]`);
-            } else {
-                console.error("Invalid split bet value:", betValue);
-                return;
-            }
-            break;
-            
-        default:
-            console.error("Unknown bet type:", betType);
-            return;
-    }
-
-    // Vérifiez si le bouton a déjà un compteur
+    let betElement = findBetElement({ type: betType, value: betValue });
     let counterElement = betElement.querySelector('.bet-counter');
 
     if (!counterElement) {
-        // Si ce n'est pas le cas, créez un
         counterElement = document.createElement('div');
         counterElement.className = 'bet-counter';
-        counterElement.textContent = betAmount.toString();  // Directly set to the bet amount
+        counterElement.textContent = betAmount.toString();
         betElement.appendChild(counterElement);
         betElement.style.position = 'relative';
     } else {
-        // Sinon, augmentez le compteur avec le bet amount
         counterElement.textContent = (parseInt(counterElement.textContent) + betAmount).toString();
     }
+
+    // Envoi du pari au backend
+    fetch('http://localhost:3001/place-bet', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            userId: telegramUserId, // Utilisation de l'ID récupéré
+            amount: betAmount,
+            number: betType === 'number' ? betValue : null
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data.message);
+        alert(data.message); // Affiche un message à l'utilisateur
+    })
+    .catch(error => console.error('Error:', error));
 }
 
 
