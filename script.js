@@ -194,8 +194,9 @@ function placeBet(betType, betValue) {
         return;
     }
 
-    if (betType === 'number') {
-        betValue = parseInt(betValue, 10);
+    // Parse bet value if it's a number
+    if (betType === 'number' || betType === 'split') {
+        betValue = Array.isArray(betValue) ? betValue.map(v => parseInt(v, 10)) : parseInt(betValue, 10);
     }
 
     userBalance -= betAmount;
@@ -205,7 +206,7 @@ function placeBet(betType, betValue) {
         for (let i in betValue) {
             bets.push({
                 type: 'number',
-                value: parseInt(betValue[i], 10),
+                value: betValue[i],
                 amount: betAmount / betValue.length
             });
         }
@@ -219,20 +220,7 @@ function placeBet(betType, betValue) {
 
     console.log("Bet placed:", betType, betValue, betAmount);
 
-    let betElement = findBetElement({ type: betType, value: betValue });
-    let counterElement = betElement.querySelector('.bet-counter');
-
-    if (!counterElement) {
-        counterElement = document.createElement('div');
-        counterElement.className = 'bet-counter';
-        counterElement.textContent = betAmount.toString();
-        betElement.appendChild(counterElement);
-        betElement.style.position = 'relative';
-    } else {
-        counterElement.textContent = (parseInt(counterElement.textContent) + betAmount).toString();
-    }
-
-    // Envoi du pari au backend
+    // Send the bet to the backend
     fetch('http://localhost:3001/place-bet', {
         method: 'POST',
         headers: {
@@ -240,8 +228,9 @@ function placeBet(betType, betValue) {
         },
         body: JSON.stringify({
             userId: telegramUserId, // Utilisation de l'ID récupéré
-            amount: betAmount,
-            number: betType === 'number' ? betValue : null
+            betType: betType,
+            betValue: betValue,
+            amount: betAmount
         })
     })
     .then(response => response.json())
@@ -251,6 +240,7 @@ function placeBet(betType, betValue) {
     })
     .catch(error => console.error('Error:', error));
 }
+
 
 function updateDrawnNumbersHistory(drawnNumber) {
     // Ajoute le dernier numéro au début de l'historique
