@@ -97,6 +97,7 @@ function updateClientTimer() {
             if (canBet) {
                 canBet = false;
                 betResultDisplay.textContent = "Bets are now closed for the next draw!";
+                evaluateAllBets(); // Évaluer tous les paris lorsque les paris sont fermés
             }
         } else if (currentTime >= clientNextDrawTime - 1000 && currentTime < clientNextDrawTime) {
             stopWheelSpin();
@@ -104,7 +105,7 @@ function updateClientTimer() {
             canBet = true;
             betResultDisplay.textContent = "You can now place your bets for the next draw!";
             fetchDrawnNumber(number => {
-                evaluateBets(number);
+                finalizeBets(number);
                 bets = [];
                 currentBetsDisplay.textContent = '';
             });
@@ -220,158 +221,31 @@ function placeBet(betType, betValue) {
 
     console.log("Bet placed:", betType, betValue, betAmount);
 
-    // Send the bet to the backend
-    fetch('http://localhost:3001/place-bet', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            userId: telegramUserId, // Utilisation de l'ID récupéré
-            betType: betType,
-            betValue: betValue,
-            amount: betAmount
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log(data.message);
-        alert(data.message); // Affiche un message à l'utilisateur
-    })
-    .catch(error => console.error('Error:', error));
-}
+    // Afficher les jetons misés sur la grille
+    let betElement = findBetElement({ type: betType, value: betValue });
+    let counterElement = betElement.querySelector('.bet-counter');
 
-function updateDrawnNumbersHistory(drawnNumber) {
-    // Ajoute le dernier numéro au début de l'historique
-    drawnNumbersHistory.unshift(drawnNumber);
-
-    // Si l'historique dépasse 20 numéros, supprime le dernier
-    if (drawnNumbersHistory.length > 20) {
-        drawnNumbersHistory.pop();
-    }
-
-    // Met à jour le DOM avec l'historique
-    let list = document.getElementById('last-drawn-numbers-list');
-    list.innerHTML = ''; // Vider la liste actuelle
-
-    const redNumbers = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
-
-    for (let number of drawnNumbersHistory) {
-        let listItem = document.createElement('li');
-        listItem.textContent = number;
-
-        // Ajout des classes de couleur
-        if (redNumbers.includes(number)) {
-            listItem.classList.add('red');
-        } else if (number === 0) {
-            listItem.classList.add('green');
-        } else {
-            listItem.classList.add('black');
-        }
-
-        list.appendChild(listItem);
+    if (!counterElement) {
+        counterElement = document.createElement('div');
+        counterElement.className = 'bet-counter';
+        counterElement.textContent = betAmount.toString();
+        betElement.appendChild(counterElement);
+        betElement.style.position = 'relative';
+    } else {
+        counterElement.textContent = (parseInt(counterElement.textContent) + betAmount).toString();
     }
 }
 
-function fetchDrawnNumber(callback) {
-    fetch('http://localhost:3001/current-number')
-        .then(response => response.json())
-        .then(data => {
-            const drawnNumber = data.number;
+function evaluateAllBets() {
+    let totalBet = 0;
+    bets.forEach(bet => {
+        totalBet += bet.amount;
+    });
 
-            clearTimeout(resetBallTimeout);  // <-- Annule l'ancienne temporisation
-
-            // Move the ball to the drawn number just after updating it
-            moveToNumber(drawnNumber);
-
-            updateDrawnNumbersHistory(drawnNumber); // Met à jour l'historique
-            clientNextDrawTime = Date.now() + data.timeRemaining;
-
-            // Update the last drawn number display
-            lastDrawnNumberDisplay.textContent = drawnNumber;
-
-            // Supprimez tous les compteurs de paris
-            document.querySelectorAll('.bet-counter').forEach(counter => counter.remove());
-
-           setTimeout(() => {
-                resetBallPosition();
-                setTimeout(() => {
-                    moveToNumber(drawnNumber);
-                }, 100);  // Attendez 100ms après le reset pour déplacer la balle
-            }, 15000);
-
-            callback(drawnNumber);
-        });
+    console.log(`Total bet amount: ${totalBet}`);
 }
 
-function moveToNumber(number) {
-    number = parseInt(number, 10);
-    console.log(`moveToNumber called with number: ${number}`);
-    let x, y;
-
-    switch (number) {
-        case 0: x = 252; y = 82; break;
-        case 32: x = 273; y = 89; break;
-        case 15: x = 306; y = 94; break;
-        case 19: x = 329; y = 104; break;
-        case 4: x = 355; y = 124; break;
-        case 21: x = 372; y = 142; break;
-        case 2: x = 389; y = 161; break;
-        case 25: x = 402; y = 188; break;
-        case 17: x = 408; y = 216; break;
-        case 34: x = 415; y = 242; break;
-        case 6: x = 414; y = 269; break;
-        case 27: x = 407; y = 298; break;
-        case 13: x = 396; y = 327; break;
-        case 36: x = 380; y = 347; break;
-        case 11: x = 361; y = 371; break;
-        case 30: x = 344; y = 387; break;
-        case 8: x = 319; y = 400; break;
-        case 23: x = 292; y = 409; break;
-        case 10: x = 260; y = 416; break;
-        case 5: x = 239; y = 411; break;
-        case 24: x = 211; y = 412; break;
-        case 16: x = 181; y = 401; break;
-        case 33: x = 156; y = 388; break;
-        case 1: x = 132; y = 374; break;
-        case 20: x = 115; y = 346; break;
-        case 14: x = 99; y = 325; break;
-        case 31: x = 89; y = 297; break;
-        case 9: x = 83; y = 272; break;
-        case 22: x = 86; y = 241; break;
-        case 18: x = 89; y = 216; break;
-        case 29: x = 95; y = 187; break;
-        case 7: x = 110; y = 168; break;
-        case 28: x = 132; y = 145; break;
-        case 12: x = 149; y = 126; break;
-        case 35: x = 170; y = 107; break;
-        case 3: x = 197; y = 99; break;
-        case 26: x = 222; y = 92; break;
-        default:
-            console.error(`Unknown number: ${number}`);
-            return;
-    }
-
-    console.log(`Moving to number ${number} with coordinates (${x}, ${y})`);
-
-    const ballElement = document.querySelector('.ball');
-    if (!ballElement) {
-        console.error("Ball element not found!");
-        return;
-    }
-  
-    // Réactivez la transition
-    ballElement.style.transition = "top 1s, left 1s";
-    ballElement.style.left = `${x}px`;
-    ballElement.style.top = `${y}px`;
-
-    ballElement.addEventListener('transitionend', function() {
-        ballElement.style.left = `${x}px`;
-        ballElement.style.top = `${y}px`;
-    }, { once: true });
-}
-
-function evaluateBets(drawnNumber) {
+function finalizeBets(drawnNumber) {
     console.log("Evaluating bets for drawn number:", drawnNumber);
     console.log("Current bets:", bets);
     
@@ -455,6 +329,127 @@ function evaluateBets(drawnNumber) {
     } else {
         betResultDisplay.textContent = `You lost ${totalLost} tokens. The number was ${drawnNumber}.`;
     }
+}
+
+function updateDrawnNumbersHistory(drawnNumber) {
+    drawnNumbersHistory.unshift(drawnNumber);
+    if (drawnNumbersHistory.length > 20) {
+        drawnNumbersHistory.pop();
+    }
+
+    let list = document.getElementById('last-drawn-numbers-list');
+    list.innerHTML = ''; 
+
+    const redNumbers = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+
+    for (let number of drawnNumbersHistory) {
+        let listItem = document.createElement('li');
+        listItem.textContent = number;
+
+        if (redNumbers.includes(number)) {
+            listItem.classList.add('red');
+        } else if (number === 0) {
+            listItem.classList.add('green');
+        } else {
+            listItem.classList.add('black');
+        }
+
+        list.appendChild(listItem);
+    }
+}
+
+function fetchDrawnNumber(callback) {
+    fetch('http://localhost:3001/current-number')
+        .then(response => response.json())
+        .then(data => {
+            const drawnNumber = data.number;
+
+            clearTimeout(resetBallTimeout);
+
+            moveToNumber(drawnNumber);
+
+            updateDrawnNumbersHistory(drawnNumber);
+            clientNextDrawTime = Date.now() + data.timeRemaining;
+
+            lastDrawnNumberDisplay.textContent = drawnNumber;
+
+            document.querySelectorAll('.bet-counter').forEach(counter => counter.remove());
+
+            setTimeout(() => {
+                resetBallPosition();
+                setTimeout(() => {
+                    moveToNumber(drawnNumber);
+                }, 100);
+            }, 15000);
+
+            callback(drawnNumber);
+        });
+}
+
+function moveToNumber(number) {
+    number = parseInt(number, 10);
+    console.log(`moveToNumber called with number: ${number}`);
+    let x, y;
+
+    switch (number) {
+        case 0: x = 252; y = 82; break;
+        case 32: x = 273; y = 89; break;
+        case 15: x = 306; y = 94; break;
+        case 19: x = 329; y = 104; break;
+        case 4: x = 355; y = 124; break;
+        case 21: x = 372; y = 142; break;
+        case 2: x = 389; y = 161; break;
+        case 25: x = 402; y = 188; break;
+        case 17: x = 408; y = 216; break;
+        case 34: x = 415; y = 242; break;
+        case 6: x = 414; y = 269; break;
+        case 27: x = 407; y = 298; break;
+        case 13: x = 396; y = 327; break;
+        case 36: x = 380; y = 347; break;
+        case 11: x = 361; y = 371; break;
+        case 30: x = 344; y = 387; break;
+        case 8: x = 319; y = 400; break;
+        case 23: x = 292; y = 409; break;
+        case 10: x = 260; y = 416; break;
+        case 5: x = 239; y = 411; break;
+        case 24: x = 211; y = 412; break;
+        case 16: x = 181; y = 401; break;
+        case 33: x = 156; y = 388; break;
+        case 1: x = 132; y = 374; break;
+        case 20: x = 115; y = 346; break;
+        case 14: x = 99; y = 325; break;
+        case 31: x = 89; y = 297; break;
+        case 9: x = 83; y = 272; break;
+        case 22: x = 86; y = 241; break;
+        case 18: x = 89; y = 216; break;
+        case 29: x = 95; y = 187; break;
+        case 7: x = 110; y = 168; break;
+        case 28: x = 132; y = 145; break;
+        case 12: x = 149; y = 126; break;
+        case 35: x = 170; y = 107; break;
+        case 3: x = 197; y = 99; break;
+        case 26: x = 222; y = 92; break;
+        default:
+            console.error(`Unknown number: ${number}`);
+            return;
+    }
+
+    console.log(`Moving to number ${number} with coordinates (${x}, ${y})`);
+
+    const ballElement = document.querySelector('.ball');
+    if (!ballElement) {
+        console.error("Ball element not found!");
+        return;
+    }
+
+    ballElement.style.transition = "top 1s, left 1s";
+    ballElement.style.left = `${x}px`;
+    ballElement.style.top = `${y}px`;
+
+    ballElement.addEventListener('transitionend', function() {
+        ballElement.style.left = `${x}px`;
+        ballElement.style.top = `${y}px`;
+    }, { once: true });
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
