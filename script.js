@@ -387,6 +387,7 @@ function evaluateBets(drawnNumber) {
     console.log("Current bets:", bets);
     
     let totalWon = 0;
+    let totalLost = 0;
     let winningBets = [];
 
     const redNumbers = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
@@ -394,15 +395,15 @@ function evaluateBets(drawnNumber) {
 
     bets.forEach(bet => {
         let winAmount = 0;
+
         switch (bet.type) {
             case 'number':
-                console.log(`Drawn number: ${drawnNumber}, Bet number: ${bet.value}, Type of drawn number: ${typeof drawnNumber}, Type of bet value: ${typeof bet.value}`);
                 if (drawnNumber === bet.value) {
                     winAmount = bet.amount * 36;
                     winningBets.push(`Number ${bet.value} (x36)`);
                 }
                 break;
-            
+
             case 'color':
                 if (drawnNumber !== 0) {
                     if (bet.value === 'red' && redNumbers.includes(drawnNumber)) {
@@ -414,24 +415,28 @@ function evaluateBets(drawnNumber) {
                     }
                 }
                 break;
+
             case 'parity':
                 if (drawnNumber !== 0 && ((bet.value === 'even' && drawnNumber % 2 === 0) || (bet.value === 'odd' && drawnNumber % 2 === 1))) {
                     winAmount = bet.amount * 2;
                     winningBets.push(`Parity ${bet.value} (x2)`);
                 }
                 break;
+
             case 'half':
                 if (bet.value === 'low' ? drawnNumber >= 1 && drawnNumber <= 18 : drawnNumber >= 19 && drawnNumber <= 36) {
                     winAmount = bet.amount * 2;
                     winningBets.push(`Half ${bet.value} (x2)`);
                 }
                 break;
+
             case 'dozen':
                 if (bet.value === 'first' ? drawnNumber >= 1 && drawnNumber <= 12 : bet.value === 'second' ? drawnNumber >= 13 && drawnNumber <= 24 : drawnNumber >= 25 && drawnNumber <= 36) {
                     winAmount = bet.amount * 3;
                     winningBets.push(`Dozen ${bet.value} (x3)`);
                 }
                 break;
+
             case 'column':
                 const col1 = [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34];
                 const col2 = [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35];
@@ -442,21 +447,24 @@ function evaluateBets(drawnNumber) {
                 }
                 break;
         }
-        
-        if(winAmount > 0) {
+
+        if (winAmount > 0) {
             totalWon += winAmount;
-            userBalance += winAmount;
+        } else {
+            totalLost += bet.amount;
         }
     });
 
+    userBalance += totalWon;
     console.log("Total won:", totalWon);
-
+    console.log("Total lost:", totalLost);
+    
     balanceDisplay.textContent = userBalance;
 
     if (totalWon > 0) {
         betResultDisplay.textContent = `You won ${totalWon} tokens! Winning bets: ${winningBets.join(', ')}.`;
     } else {
-        betResultDisplay.textContent = `You lost. The number was ${drawnNumber}.`;
+        betResultDisplay.textContent = `You lost ${totalLost} tokens. The number was ${drawnNumber}.`;
     }
 }
 
