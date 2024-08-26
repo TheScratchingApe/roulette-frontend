@@ -237,21 +237,20 @@ function placeBet(betType, betValue) {
         },
         body: JSON.stringify({
             userId: telegramUserId, 
-            betType: betType,
-            betValue: betValue,
-            amount: betAmount
+            bets: bets // Envoyer tous les paris actuels au serveur
         })
     })
     .then(response => response.json())
     .then(data => {
         console.log(data.message);
-        // Pas d'alerte affichée ici
     })
     .catch(error => console.error('Error:', error));
 }
 
+
 function updateDrawnNumbersHistory(drawnNumber) {
     drawnNumbersHistory.unshift(drawnNumber);
+
     if (drawnNumbersHistory.length > 20) {
         drawnNumbersHistory.pop();
     }
@@ -311,8 +310,7 @@ function moveToNumber(number) {
     let x, y;
 
     switch (number) {
-        // Define the coordinates for each number here, as in your original code
-        // Example:
+        // Define the coordinates for each number here
         case 0: x = 252; y = 82; break;
         // Add the rest of the numbers here
 
