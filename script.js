@@ -193,15 +193,13 @@ function placeBet(betType, betValue) {
         return;
     }
 
-    if (!telegramUserId) {
-        alert("Unable to place bet. User ID is missing.");
-        console.error("Error: telegramUserId is missing");
+    const betAmount = currentBetValue;
+    const username = window.Telegram.WebApp.initDataUnsafe.user ? window.Telegram.WebApp.initDataUnsafe.user.username : null;
+
+    if (!username) {
+        alert("Unable to place bet. Username is missing.");
         return;
     }
-
-    console.log(`Placing bet with userId: ${telegramUserId}`);
-
-    const betAmount = currentBetValue;
 
     if (userBalance < betAmount) {
         alert('Insufficient balance to place the bet.');
@@ -217,19 +215,6 @@ function placeBet(betType, betValue) {
         amount: betAmount
     });
 
-    let betElement = findBetElement({ type: betType, value: betValue });
-    let counterElement = betElement.querySelector('.bet-counter');
-
-    if (!counterElement) {
-        counterElement = document.createElement('div');
-        counterElement.className = 'bet-counter';
-        counterElement.textContent = betAmount.toString();
-        betElement.appendChild(counterElement);
-        betElement.style.position = 'relative';
-    } else {
-        counterElement.textContent = (parseInt(counterElement.textContent) + betAmount).toString();
-    }
-
     // Envoi du pari au backend
     fetch('http://localhost:3001/place-bet', {
         method: 'POST',
@@ -237,7 +222,7 @@ function placeBet(betType, betValue) {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            userId: telegramUserId, // Utilisation de l'ID récupéré
+            username: username, // Utilisation de l'username
             amount: betAmount,
             number: betType === 'number' ? betValue : null
         })
@@ -245,10 +230,11 @@ function placeBet(betType, betValue) {
     .then(response => response.json())
     .then(data => {
         console.log(data.message);
-        alert(data.message); // Affiche un message à l'utilisateur
+        alert(data.message);
     })
     .catch(error => console.error('Error:', error));
 }
+
 
 // Mettre à jour l'historique des numéros tirés
 function updateDrawnNumbersHistory(drawnNumber) {
