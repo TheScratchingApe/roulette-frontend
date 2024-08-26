@@ -13,10 +13,10 @@ let resetBallTimeout;
 let lastClickTime = 0;
 let currentBetValue = 1; 
 
-
 let telegramUserId = null;
 
-document.addEventListener('DOMContentLoaded', (event) => {
+// Fonction pour récupérer l'UserID au moment du pari
+function fetchTelegramUserId() {
     telegramUserId = window.Telegram.WebApp.initDataUnsafe.user ? window.Telegram.WebApp.initDataUnsafe.user.id : null;
 
     if (!telegramUserId) {
@@ -24,8 +24,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     } else {
         console.log("Telegram User ID:", telegramUserId);
     }
-});
-
+}
 
 document.getElementById('cancel-bet-btn').addEventListener('click', function() {
     const currentTime = Date.now();
@@ -187,6 +186,11 @@ function findBetElement(bet) {
     }
 }
 
+// Fonction à appeler lorsque l'utilisateur place un pari
+function placeBetWithUserId(betType, betValue) {
+    fetchTelegramUserId();  // Récupérer l'ID utilisateur
+    placeBet(betType, betValue);  // Placer le pari
+}
 
 function placeBet(betType, betValue) {
     if (!canBet) {
@@ -196,8 +200,11 @@ function placeBet(betType, betValue) {
 
     if (!telegramUserId) {
         alert("Unable to place bet. User ID is missing.");
+        console.error("Error: telegramUserId is missing");
         return;
     }
+
+    console.log(`Placing bet with userId: ${telegramUserId}`);
 
     const betAmount = currentBetValue;
 
@@ -206,30 +213,14 @@ function placeBet(betType, betValue) {
         return;
     }
 
-    if (betType === 'number') {
-        betValue = parseInt(betValue, 10);
-    }
-
     userBalance -= betAmount;
     balanceDisplay.textContent = userBalance;
 
-    if (betType === 'split') {
-        for (let i in betValue) {
-            bets.push({
-                type: 'number',
-                value: parseInt(betValue[i], 10),
-                amount: betAmount / betValue.length
-            });
-        }
-    } else {
-        bets.push({
-            type: betType,
-            value: betValue,
-            amount: betAmount
-        });
-    }
-
-    console.log("Bet placed:", betType, betValue, betAmount);
+    bets.push({
+        type: betType,
+        value: betValue,
+        amount: betAmount
+    });
 
     let betElement = findBetElement({ type: betType, value: betValue });
     let counterElement = betElement.querySelector('.bet-counter');
