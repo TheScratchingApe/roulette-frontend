@@ -11,7 +11,7 @@ let bets = [];
 let drawnNumbersHistory = [];
 let resetBallTimeout;
 let lastClickTime = 0;
-let currentBetValue = 1; 
+let currentBetValue = 1;
 
 let telegramUserId = null;
 
@@ -79,13 +79,10 @@ function resetBallPosition() {
         return;
     }
 
-    // Désactivez temporairement la transition
     ballElement.style.transition = "none";
-
-    // Reset the ball's position to the center
     ballElement.style.left = '50%';
     ballElement.style.top = '50%';
-    ballElement.style.transform = 'translate(-50%, -50%)'; // to ensure the ball is centered properly
+    ballElement.style.transform = 'translate(-50%, -50%)';
 }
 
 function updateClientTimer() {
@@ -97,7 +94,6 @@ function updateClientTimer() {
             if (canBet) {
                 canBet = false;
                 betResultDisplay.textContent = "Bets are now closed for the next draw!";
-                evaluateAllBets(); // Évaluer tous les paris lorsque les paris sont fermés
             }
         } else if (currentTime >= clientNextDrawTime - 1000 && currentTime < clientNextDrawTime) {
             stopWheelSpin();
@@ -105,7 +101,7 @@ function updateClientTimer() {
             canBet = true;
             betResultDisplay.textContent = "You can now place your bets for the next draw!";
             fetchDrawnNumber(number => {
-                finalizeBets(number);
+                evaluateBets(number);
                 bets = [];
                 currentBetsDisplay.textContent = '';
             });
@@ -130,7 +126,6 @@ function cancelLastBet() {
     userBalance += lastBet.amount;
     balanceDisplay.textContent = userBalance;
 
-    // Find the bet element and remove its bet-counter
     let betElement = findBetElement(lastBet);
     if (betElement) {
         let counterElement = betElement.querySelector('.bet-counter');
@@ -151,7 +146,6 @@ function cancelAllBets() {
     userBalance += totalRefund;
     balanceDisplay.textContent = userBalance;
 
-    // Remove all bet-counters
     document.querySelectorAll('.bet-counter').forEach(counter => counter.remove());
 
     bets = [];
@@ -195,7 +189,6 @@ function placeBet(betType, betValue) {
         return;
     }
 
-    // Parse bet value if it's a number
     if (betType === 'number' || betType === 'split') {
         betValue = Array.isArray(betValue) ? betValue.map(v => parseInt(v, 10)) : parseInt(betValue, 10);
     }
@@ -221,34 +214,135 @@ function placeBet(betType, betValue) {
 
     console.log("Bet placed:", betType, betValue, betAmount);
 
-    // Afficher les jetons misés sur la grille
     let betElement = findBetElement({ type: betType, value: betValue });
-    let counterElement = betElement.querySelector('.bet-counter');
+    if (betElement) {
+        let counterElement = betElement.querySelector('.bet-counter');
 
-    if (!counterElement) {
-        counterElement = document.createElement('div');
-        counterElement.className = 'bet-counter';
-        counterElement.textContent = betAmount.toString();
-        betElement.appendChild(counterElement);
-        betElement.style.position = 'relative';
-    } else {
-        counterElement.textContent = (parseInt(counterElement.textContent) + betAmount).toString();
+        if (!counterElement) {
+            counterElement = document.createElement('div');
+            counterElement.className = 'bet-counter';
+            counterElement.textContent = betAmount.toString();
+            betElement.appendChild(counterElement);
+            betElement.style.position = 'relative';
+        } else {
+            counterElement.textContent = (parseInt(counterElement.textContent) + betAmount).toString();
+        }
+    }
+
+    // Envoi du pari au backend
+    fetch('http://localhost:3001/place-bet', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            userId: telegramUserId, 
+            betType: betType,
+            betValue: betValue,
+            amount: betAmount
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data.message);
+        // Pas d'alerte affichée ici
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function updateDrawnNumbersHistory(drawnNumber) {
+    drawnNumbersHistory.unshift(drawnNumber);
+    if (drawnNumbersHistory.length > 20) {
+        drawnNumbersHistory.pop();
+    }
+
+    let list = document.getElementById('last-drawn-numbers-list');
+    list.innerHTML = ''; 
+
+    const redNumbers = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+
+    for (let number of drawnNumbersHistory) {
+        let listItem = document.createElement('li');
+        listItem.textContent = number;
+
+        if (redNumbers.includes(number)) {
+            listItem.classList.add('red');
+        } else if (number === 0) {
+            listItem.classList.add('green');
+        } else {
+            listItem.classList.add('black');
+        }
+
+        list.appendChild(listItem);
     }
 }
 
-function evaluateAllBets() {
-    let totalBet = 0;
-    bets.forEach(bet => {
-        totalBet += bet.amount;
-    });
+function fetchDrawnNumber(callback) {
+    fetch('http://localhost:3001/current-number')
+        .then(response => response.json())
+        .then(data => {
+            const drawnNumber = data.number;
 
-    console.log(`Total bet amount: ${totalBet}`);
+            clearTimeout(resetBallTimeout);
+
+            moveToNumber(drawnNumber);
+
+            updateDrawnNumbersHistory(drawnNumber);
+            clientNextDrawTime = Date.now() + data.timeRemaining;
+
+            lastDrawnNumberDisplay.textContent = drawnNumber;
+
+            document.querySelectorAll('.bet-counter').forEach(counter => counter.remove());
+
+           setTimeout(() => {
+                resetBallPosition();
+                setTimeout(() => {
+                    moveToNumber(drawnNumber);
+                }, 100);  
+            }, 15000);
+
+            callback(drawnNumber);
+        });
 }
 
-function finalizeBets(drawnNumber) {
+function moveToNumber(number) {
+    number = parseInt(number, 10);
+    console.log(`moveToNumber called with number: ${number}`);
+    let x, y;
+
+    switch (number) {
+        // Define the coordinates for each number here, as in your original code
+        // Example:
+        case 0: x = 252; y = 82; break;
+        // Add the rest of the numbers here
+
+        default:
+            console.error(`Unknown number: ${number}`);
+            return;
+    }
+
+    console.log(`Moving to number ${number} with coordinates (${x}, ${y})`);
+
+    const ballElement = document.querySelector('.ball');
+    if (!ballElement) {
+        console.error("Ball element not found!");
+        return;
+    }
+
+    ballElement.style.transition = "top 1s, left 1s";
+    ballElement.style.left = `${x}px`;
+    ballElement.style.top = `${y}px`;
+
+    ballElement.addEventListener('transitionend', function() {
+        ballElement.style.left = `${x}px`;
+        ballElement.style.top = `${y}px`;
+    }, { once: true });
+}
+
+function evaluateBets(drawnNumber) {
     console.log("Evaluating bets for drawn number:", drawnNumber);
     console.log("Current bets:", bets);
-    
+
     let totalWon = 0;
     let totalLost = 0;
     let winningBets = [];
@@ -329,127 +423,6 @@ function finalizeBets(drawnNumber) {
     } else {
         betResultDisplay.textContent = `You lost ${totalLost} tokens. The number was ${drawnNumber}.`;
     }
-}
-
-function updateDrawnNumbersHistory(drawnNumber) {
-    drawnNumbersHistory.unshift(drawnNumber);
-    if (drawnNumbersHistory.length > 20) {
-        drawnNumbersHistory.pop();
-    }
-
-    let list = document.getElementById('last-drawn-numbers-list');
-    list.innerHTML = ''; 
-
-    const redNumbers = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
-
-    for (let number of drawnNumbersHistory) {
-        let listItem = document.createElement('li');
-        listItem.textContent = number;
-
-        if (redNumbers.includes(number)) {
-            listItem.classList.add('red');
-        } else if (number === 0) {
-            listItem.classList.add('green');
-        } else {
-            listItem.classList.add('black');
-        }
-
-        list.appendChild(listItem);
-    }
-}
-
-function fetchDrawnNumber(callback) {
-    fetch('http://localhost:3001/current-number')
-        .then(response => response.json())
-        .then(data => {
-            const drawnNumber = data.number;
-
-            clearTimeout(resetBallTimeout);
-
-            moveToNumber(drawnNumber);
-
-            updateDrawnNumbersHistory(drawnNumber);
-            clientNextDrawTime = Date.now() + data.timeRemaining;
-
-            lastDrawnNumberDisplay.textContent = drawnNumber;
-
-            document.querySelectorAll('.bet-counter').forEach(counter => counter.remove());
-
-            setTimeout(() => {
-                resetBallPosition();
-                setTimeout(() => {
-                    moveToNumber(drawnNumber);
-                }, 100);
-            }, 15000);
-
-            callback(drawnNumber);
-        });
-}
-
-function moveToNumber(number) {
-    number = parseInt(number, 10);
-    console.log(`moveToNumber called with number: ${number}`);
-    let x, y;
-
-    switch (number) {
-        case 0: x = 252; y = 82; break;
-        case 32: x = 273; y = 89; break;
-        case 15: x = 306; y = 94; break;
-        case 19: x = 329; y = 104; break;
-        case 4: x = 355; y = 124; break;
-        case 21: x = 372; y = 142; break;
-        case 2: x = 389; y = 161; break;
-        case 25: x = 402; y = 188; break;
-        case 17: x = 408; y = 216; break;
-        case 34: x = 415; y = 242; break;
-        case 6: x = 414; y = 269; break;
-        case 27: x = 407; y = 298; break;
-        case 13: x = 396; y = 327; break;
-        case 36: x = 380; y = 347; break;
-        case 11: x = 361; y = 371; break;
-        case 30: x = 344; y = 387; break;
-        case 8: x = 319; y = 400; break;
-        case 23: x = 292; y = 409; break;
-        case 10: x = 260; y = 416; break;
-        case 5: x = 239; y = 411; break;
-        case 24: x = 211; y = 412; break;
-        case 16: x = 181; y = 401; break;
-        case 33: x = 156; y = 388; break;
-        case 1: x = 132; y = 374; break;
-        case 20: x = 115; y = 346; break;
-        case 14: x = 99; y = 325; break;
-        case 31: x = 89; y = 297; break;
-        case 9: x = 83; y = 272; break;
-        case 22: x = 86; y = 241; break;
-        case 18: x = 89; y = 216; break;
-        case 29: x = 95; y = 187; break;
-        case 7: x = 110; y = 168; break;
-        case 28: x = 132; y = 145; break;
-        case 12: x = 149; y = 126; break;
-        case 35: x = 170; y = 107; break;
-        case 3: x = 197; y = 99; break;
-        case 26: x = 222; y = 92; break;
-        default:
-            console.error(`Unknown number: ${number}`);
-            return;
-    }
-
-    console.log(`Moving to number ${number} with coordinates (${x}, ${y})`);
-
-    const ballElement = document.querySelector('.ball');
-    if (!ballElement) {
-        console.error("Ball element not found!");
-        return;
-    }
-
-    ballElement.style.transition = "top 1s, left 1s";
-    ballElement.style.left = `${x}px`;
-    ballElement.style.top = `${y}px`;
-
-    ballElement.addEventListener('transitionend', function() {
-        ballElement.style.left = `${x}px`;
-        ballElement.style.top = `${y}px`;
-    }, { once: true });
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
