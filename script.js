@@ -241,7 +241,6 @@ function placeBet(betType, betValue) {
     .catch(error => console.error('Error:', error));
 }
 
-
 function updateDrawnNumbersHistory(drawnNumber) {
     // Ajoute le dernier numéro au début de l'historique
     drawnNumbersHistory.unshift(drawnNumber);
@@ -459,7 +458,6 @@ function evaluateBets(drawnNumber) {
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
-    // Votre code d'initialisation ici
     document.querySelectorAll('.token').forEach(token => {
         token.addEventListener('click', function() {
             currentBetValue = parseInt(this.dataset.value);
