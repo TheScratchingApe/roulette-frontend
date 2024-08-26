@@ -5,30 +5,17 @@ const lastDrawnNumberDisplay = document.getElementById('last-drawn-number');
 const currentBetsDisplay = document.getElementById('current-bets');
 const timerDisplay = document.getElementById('timer');
 
-let clientNextDrawTime = Date.now() + 45000;  // Initial value, will be updated later
-let canBet = true; // Si le joueur peut miser ou non
+let clientNextDrawTime = Date.now() + 45000;
+let canBet = true;
 let bets = [];
 let drawnNumbersHistory = [];
 let resetBallTimeout;
 let lastClickTime = 0;
-let currentBetValue = 1; 
-
-let telegramUserId = null;
-
-// Fonction pour récupérer l'UserID au moment du pari
-function fetchTelegramUserId() {
-    telegramUserId = window.Telegram.WebApp.initDataUnsafe.user ? window.Telegram.WebApp.initDataUnsafe.user.id : null;
-
-    if (!telegramUserId) {
-        console.error("Failed to retrieve Telegram user ID.");
-    } else {
-        console.log("Telegram User ID:", telegramUserId);
-    }
-}
+let currentBetValue = 1;
 
 document.getElementById('cancel-bet-btn').addEventListener('click', function() {
     const currentTime = Date.now();
-    if (currentTime - lastClickTime < 300) { // Double click within 300ms
+    if (currentTime - lastClickTime < 300) {
         cancelAllBets();
     } else {
         cancelLastBet();
@@ -80,13 +67,10 @@ function resetBallPosition() {
         return;
     }
 
-    // Désactivez temporairement la transition
     ballElement.style.transition = "none";
-
-    // Reset the ball's position to the center
     ballElement.style.left = '50%';
     ballElement.style.top = '50%';
-    ballElement.style.transform = 'translate(-50%, -50%)'; // to ensure the ball is centered properly
+    ballElement.style.transform = 'translate(-50%, -50%)';
 }
 
 function updateClientTimer() {
@@ -130,7 +114,6 @@ function cancelLastBet() {
     userBalance += lastBet.amount;
     balanceDisplay.textContent = userBalance;
 
-    // Find the bet element and remove its bet-counter
     let betElement = findBetElement(lastBet);
     if (betElement) {
         let counterElement = betElement.querySelector('.bet-counter');
@@ -151,7 +134,6 @@ function cancelAllBets() {
     userBalance += totalRefund;
     balanceDisplay.textContent = userBalance;
 
-    // Remove all bet-counters
     document.querySelectorAll('.bet-counter').forEach(counter => counter.remove());
 
     bets = [];
@@ -160,31 +142,26 @@ function cancelAllBets() {
 function findBetElement(bet) {
     switch(bet.type) {
         case 'number':
-            return document.querySelector(`.cell[onclick="placeBetWithUserId('number', ${bet.value})"]`);
+            return document.querySelector(`.cell[onclick="placeBet('number', ${bet.value})"]`);
         case 'color':
-            return document.querySelector(`.bottom-bet[onclick="placeBetWithUserId('color', '${bet.value}')"]`);
+            return document.querySelector(`.bottom-bet[onclick="placeBet('color', '${bet.value}')"]`);
         case 'parity':
-            return document.querySelector(`.bottom-bet[onclick="placeBetWithUserId('parity', '${bet.value}')"]`);
+            return document.querySelector(`.bottom-bet[onclick="placeBet('parity', '${bet.value}')"]`);
         case 'half':
-            return document.querySelector(`.bottom-bet[onclick="placeBetWithUserId('half', '${bet.value}')"]`);
+            return document.querySelector(`.bottom-bet[onclick="placeBet('half', '${bet.value}')"]`);
         case 'column':
-            return document.querySelector(`.column-bet[onclick="placeBetWithUserId('column', '${bet.value}')"]`);
+            return document.querySelector(`.column-bet[onclick="placeBet('column', '${bet.value}')"]`);
         case 'row':
-            return document.querySelector(`.row-bet[onclick="placeBetWithUserId('row', '${bet.value}')"]`);
+            return document.querySelector(`.row-bet[onclick="placeBet('row', '${bet.value}')"]`);
         case 'split':
             if (Array.isArray(bet.value) && bet.value.length >= 2 && bet.value.length <= 6) {
                 const betString = bet.value.join(',');
-                return document.querySelector(`.cell[onclick="placeBetWithUserId('split', [${betString}])"]`);
+                return document.querySelector(`.cell[onclick="placeBet('split', [${betString}])"]`);
             }
             break;
         default:
             return null;
     }
-}
-
-function placeBetWithUserId(betType, betValue) {
-    fetchTelegramUserId();  // Récupérer l'ID utilisateur
-    placeBet(betType, betValue);  // Placer le pari
 }
 
 function placeBet(betType, betValue) {
@@ -194,12 +171,6 @@ function placeBet(betType, betValue) {
     }
 
     const betAmount = currentBetValue;
-    const username = window.Telegram.WebApp.initDataUnsafe.user ? window.Telegram.WebApp.initDataUnsafe.user.username : null;
-
-    if (!username) {
-        alert("Unable to place bet. Username is missing.");
-        return;
-    }
 
     if (userBalance < betAmount) {
         alert('Insufficient balance to place the bet.');
@@ -215,6 +186,19 @@ function placeBet(betType, betValue) {
         amount: betAmount
     });
 
+    let betElement = findBetElement({ type: betType, value: betValue });
+    let counterElement = betElement.querySelector('.bet-counter');
+
+    if (!counterElement) {
+        counterElement = document.createElement('div');
+        counterElement.className = 'bet-counter';
+        counterElement.textContent = betAmount.toString();
+        betElement.appendChild(counterElement);
+        betElement.style.position = 'relative';
+    } else {
+        counterElement.textContent = (parseInt(counterElement.textContent) + betAmount).toString();
+    }
+
     // Envoi du pari au backend
     fetch('http://localhost:3001/place-bet', {
         method: 'POST',
@@ -222,7 +206,6 @@ function placeBet(betType, betValue) {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            username: username, // Utilisation de l'username
             amount: betAmount,
             number: betType === 'number' ? betValue : null
         })
@@ -235,8 +218,6 @@ function placeBet(betType, betValue) {
     .catch(error => console.error('Error:', error));
 }
 
-
-// Mettre à jour l'historique des numéros tirés
 function updateDrawnNumbersHistory(drawnNumber) {
     drawnNumbersHistory.unshift(drawnNumber);
 
@@ -265,7 +246,6 @@ function updateDrawnNumbersHistory(drawnNumber) {
     }
 }
 
-// Récupérer le numéro tiré
 function fetchDrawnNumber(callback) {
     fetch('http://localhost:3001/current-number')
         .then(response => response.json())
@@ -294,7 +274,6 @@ function fetchDrawnNumber(callback) {
         });
 }
 
-// Déplacer la balle vers le numéro tiré
 function moveToNumber(number) {
     number = parseInt(number, 10);
     console.log("moveToNumber called with number:", number);
@@ -362,7 +341,6 @@ function moveToNumber(number) {
     }, { once: true });
 }
 
-// Évaluation des paris après le tirage
 function evaluateBets(drawnNumber) {
     console.log("Evaluating bets for drawn number:", drawnNumber);
     console.log("Current bets:", bets);
